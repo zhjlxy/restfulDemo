@@ -12,12 +12,11 @@
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
    
-    <context:annotation-config />
-    <!-- 自动加载SERVICE DAO ACTION -->
-    <context:component-scan base-package="cn.com.lxy.dao.*" />
-    <context:component-scan base-package="cn.com.lxy.service.*" />
-    <context:component-scan base-package="cn.com.lxy.rest.*" />
-
+ 	<context:annotation-config /> 
+    <context:component-scan base-package="cn.com.lxy.*" /> 
+    
+	<aop:aspectj-autoproxy /> 
+	
     <!-- 加载properties配置文件 -->
     <bean id="propertyConfigurer"
         class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -32,19 +31,22 @@
      <bean id="sessionFactory"
         class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
         <property name="dataSource" ref="dataSource"></property>
-        <property name="packagesToScan" value="cn.com.lxy.entity" />
+		 <property name="packagesToScan">
+		 	<list>
+	            <value>cn.com.lxy.entry.dto</value>
+	        </list>
+	      </property>
         <property name="hibernateProperties">
          <props>
                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
                 <prop key="hibernate.show_sql">true</prop>
                 <prop key="hibernate.format_sql">true</prop>
-                <!--<prop key="hibernate.current_session_context_class">thread</prop>-->
             </props>
         </property>
     </bean>           
 
       
-   <bean id="dataSource" destroy-method="close" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
         <property name="driverClass" value="${jdbc.driver}"/>
         <property name="jdbcUrl" value="${jdbc.url}" />
         <property name="user" value="${jdbc.user}" />
@@ -62,15 +64,15 @@
     <tx:advice id="txAdvice" transaction-manager="transactionManager">
         <tx:attributes>
             <!-- 对增、删、改方法进行事务支持 -->
-            <tx:method name="add*" propagation="REQUIRED" />
-            <tx:method name="create*" propagation="REQUIRED" />
-            <tx:method name="save*" propagation="REQUIRED" />
-            <tx:method name="edit*" propagation="REQUIRED" />
-            <tx:method name="update*" propagation="REQUIRED" />
-            <tx:method name="delete*" propagation="REQUIRED" />
-            <tx:method name="remove*" propagation="REQUIRED" />
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="create*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="save*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="edit*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="remove*" propagation="REQUIRED" rollback-for="Exception"/>
             <!-- 对查找方法进行只读事务 -->
-            <tx:method name="loadByUsername*" propagation="SUPPORTS" read-only="true" />
+            <tx:method name="loadByUsername*" propagation="SUPPORTS" read-only="true" rollback-for="Exception"/>
             <!-- 对其它方法进行只读事务 -->
             <tx:method name="*" propagation="SUPPORTS" read-only="true" />
         </tx:attributes>
@@ -78,10 +80,9 @@
     <!--那些类的哪些方法参与事务 -->
     <aop:config>
         <aop:advisor
-            pointcut="execution(* cn.com.company.service..*Service.*(..))"
-            advice-ref="txAdvice" />
-        <aop:advisor
-            pointcut="execution(* cn.com.company.service..*ServiceImpl.*(..))"
+            pointcut="execution(* cn.com.lxy.service..*.*(..))"
             advice-ref="txAdvice" />
     </aop:config>
+    
+     <bean id="bookService" class="cn.com.lxy.service.impl.BookService" />
 </beans>
